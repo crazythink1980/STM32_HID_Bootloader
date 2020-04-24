@@ -133,7 +133,25 @@
 	#define DISC_MODE
 	#define DISC_HIGH		WRITE_REG(GPIOD->BSRR, GPIO_BSRR_BS2)
 	#define DISC_LOW		WRITE_REG(GPIOD->BRR, GPIO_BRR_BR2)
-  
+
+#elif defined TARGET_BTT_SKR_MINI_E3
+
+	#define DISC_CLOCK		RCC_APB2ENR_IOPCEN
+	#define DISC_BIT_0		SET_BIT(GPIOC->CRH, GPIO_CRH_CNF13_0 | GPIO_CRH_MODE13)
+	#define DISC_BIT_1		//CLEAR_BIT(GPIOC->CRH, GPIO_CRH_CNF13_1)
+	#define DISC_MODE
+	#define DISC_HIGH		WRITE_REG(GPIOC->BSRR, GPIO_BSRR_BS13)
+	#define DISC_LOW		WRITE_REG(GPIOC->BRR, GPIO_BRR_BR13)
+
+	// Enable the internal pull-down on PB2 pin. By default, PB2
+	// is in FLOATING input mode.
+	#define PB2_PULLDOWN
+
+	#ifdef PAGE_SIZE
+	#undef PAGE_SIZE
+	#define PAGE_SIZE 2048
+	#endif
+
 #else
 	#error "No config for this target"
 #endif
