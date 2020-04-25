@@ -179,7 +179,7 @@ int main(void)
   while (1) {
     if (new_data_is_received == 1) {
       new_data_is_received = 0;
-      if (memcmp(USB_RX_Buffer, CMD_SIGNATURE, sizeof (CMD_SIGNATURE)) == 0) {
+      if ((currentPageOffset % SECTOR_SIZE) == 0 && memcmp(USB_RX_Buffer, CMD_SIGNATURE, sizeof (CMD_SIGNATURE)) == 0) {
         switch(USB_RX_Buffer[7]){
           case 0x00:
 
@@ -214,6 +214,7 @@ int main(void)
           currentPageOffset = 0;
           CMD_DATA_RECEIVED[7] = 0x02;
           USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, CMD_DATA_RECEIVED, 8);
+          memset(pageData, 0, sizeof(pageData));
         }
       }
     }
