@@ -19,6 +19,12 @@
 *	by Vassilis Serasidis <avrsite@yahoo.gr>
 *	This HID bootloader work with bluepill + STM32duino + Arduino IDE <http://www.stm32duino.com/>
 *
+* Modified 4/24/2020
+* by Eric Callahan <arksine.code@gmail.com>
+* This version of hid-flash has been modified to work with Klipper.
+* The serial port argument is now optional.  If entered and found this program
+* will attempt to force Klipper jump to the bootloader by connecting at
+* 1200 baud and enabling DTR.
 */
 
 #include <stdlib.h>
@@ -73,40 +79,46 @@ int main(int argc, char *argv[]) {
   int i;
   setbuf(stdout, NULL);
   uint8_t _timer = 0;
-  
+  uint16_t page_size = 1024;
+
   printf("\n+-----------------------------------------------------------------------+\n");
   printf  ("|         HID-Flash v2.2.1 - STM32 HID Bootloader Flash Tool            |\n");
   printf  ("|     (c)      2018 - Bruno Freitas       http://www.brunofreitas.com   |\n");
   printf  ("|     (c) 2018-2019 - Vassilis Serasidis  https://www.serasidis.gr      |\n");
   printf  ("|   Customized for STM32duino ecosystem   https://www.stm32duino.com    |\n");
   printf  ("+-----------------------------------------------------------------------+\n\n");
-  
+
+  // TODO:  This really needs an option parser
   if(argc < 3) {
-    printf("Usage: hid-flash <bin_firmware_file> <comport> <delay (optional)>\n");
+    printf("Usage: hid-flash <bin_firmware_file> <page_size> <comport (optional)> <delay (optional)>\n");
     return 1;
-  }else if(argc == 4){
-    _timer = atol(argv[3]);
+  }else if(argc == 5){
+    _timer = atol(argv[4]);
   }
-  
+
+  page_size = atol(argv[2]);
+
   firmware_file = fopen(argv[1], "rb");
   if(!firmware_file) {
     printf("> Error opening firmware file: %s\n", argv[1]);
     return error;
   }
-  
-  if(serial_init(argv[2], _timer) == 0){ //Setting up Serial port
-    RS232_CloseComport();
-  }else{
-    printf("> Unable to open the [%s]\n",argv[2]);
+
+  if (argc > 2) {
+    if(serial_init(argv[2], _timer) == 0){ //Setting up Serial port
+      RS232_CloseComport();
+    }else{
+      printf("> Unable to open the [%s]\n",argv[2]);
+    }
   }
-  
+
   hid_init();
-  
+
   printf("> Searching for [%04X:%04X] device...\n",VID,PID);
-  
+
   struct hid_device_info *devs, *cur_dev;
   uint8_t valid_hid_devices = 0;
-  
+
   for(i=0;i<10;i++){ //Try up to 10 times to open the HID device.
     devs = hid_enumerate(VID, PID);
     cur_dev = devs;
@@ -129,18 +141,18 @@ int main(int argc, char *argv[]) {
     printf("\nError - [%04X:%04X] device is not found :(",VID,PID);
     error = 1;
     goto exit;
-  } 
-  
+  }
+
   handle = hid_open(VID, PID, NULL);
-  
+
   if (i == 10 && handle != NULL) {
     printf("\n> Unable to open the [%04X:%04X] device.\n",VID,PID);
     error = 1;
     goto exit;
   }
- 
+
   printf("\n> [%04X:%04X] device is found !\n",VID,PID);
-  
+
   // Send RESET PAGES command to put HID bootloader in initial stage...
   memset(hid_tx_buf, 0, sizeof(hid_tx_buf)); //Fill the hid_tx_buf with zeros.
   memcpy(&hid_tx_buf[1], CMD_RESET_PAGES, sizeof(CMD_RESET_PAGES));
@@ -161,7 +173,7 @@ int main(int argc, char *argv[]) {
   memset(page_data, 0, sizeof(page_data));
   read_bytes = fread(page_data, 1, sizeof(page_data), firmware_file);
 
-  while(read_bytes > 0) {
+  while(1) {
 
     for(int i = 0; i < SECTOR_SIZE; i += HID_TX_SIZE - 1) {
       memcpy(&hid_tx_buf[1], page_data + i, HID_TX_SIZE - 1);
@@ -169,7 +181,7 @@ int main(int argc, char *argv[]) {
       if((i % 1024) == 0){
         printf(".");
       }
-      
+
       // Flash is unavailable when writing to it, so USB interrupt may fail here
       if(!usb_write(handle, hid_tx_buf, HID_TX_SIZE)) {
         printf("> Error while flashing firmware data.\n");
@@ -179,20 +191,25 @@ int main(int argc, char *argv[]) {
       n_bytes += (HID_TX_SIZE - 1);
       usleep(500);
     }
-    
+
     printf(" %d Bytes\n", n_bytes);
 
     do{
       hid_read(handle, hid_rx_buf, 9);
       usleep(500);
     }while(hid_rx_buf[7] != 0x02);
-    
+
     memset(page_data, 0, sizeof(page_data));
     read_bytes = fread(page_data, 1, sizeof(page_data), firmware_file);
+
+    // For stm32f1 devices with 2k pages we need to send the full 2k before
+    // exiting the loop, otherwise the last page will not be written
+    if (read_bytes == 0 && (n_bytes % page_size) == 0)
+      break;
   }
 
   printf("\n> Done!\n");
-  
+
   // Send CMD_REBOOT_MCU command to reboot the microcontroller...
   memset(hid_tx_buf, 0, sizeof(hid_tx_buf));
   memcpy(&hid_tx_buf[1], CMD_REBOOT_MCU, sizeof(CMD_REBOOT_MCU));
@@ -203,7 +220,7 @@ int main(int argc, char *argv[]) {
   if(!usb_write(handle, hid_tx_buf, HID_TX_SIZE)) {
     printf("> Error while sending <reboot mcu> command.\n");
   }
-  
+
 exit:
   if(handle) {
     hid_close(handle);
@@ -214,22 +231,24 @@ exit:
   if(firmware_file) {
     fclose(firmware_file);
   }
-  
-  printf("> Searching for [%s] ...\n",argv[2]);
 
-  for(int i=0;i<5;i++){
-    if(RS232_OpenComport(argv[2]) == 0){
-      printf("> [%s] is found !\n",argv[2] );
-      break;
+  if (argc > 3) {
+    printf("> Searching for [%s] ...\n",argv[3]);
+
+    for(int i=0;i<5;i++){
+      if(RS232_OpenComport(argv[2]) == 0){
+        printf("> [%s] is found !\n",argv[3] );
+        break;
+      }
+      sleep(1);
     }
-    sleep(1);
-  }
-  
-  if(i==5){
-    printf("> Comport is not found\n");
+
+    if(i==5){
+      printf("> Comport is not found\n");
+    }
   }
   printf("> Finish\n");
-  
+
   return error;
 }
 
@@ -240,20 +259,14 @@ int serial_init(char *argument, uint8_t __timer) {
     return(1);
   }
   printf("> Toggling DTR...\n");
-  
+
   RS232_disableRTS();
-  RS232_enableDTR();
-  usleep(200000L);
   RS232_disableDTR();
   usleep(200000L);
   RS232_enableDTR();
-  usleep(200000L);
-  RS232_disableDTR();
-  usleep(200000L);
-  RS232_send_magic();
   usleep(200000L);
   RS232_CloseComport();
-  
+
   //printf("A %i\n",__timer);
   if (__timer > 0) {
     usleep(__timer);

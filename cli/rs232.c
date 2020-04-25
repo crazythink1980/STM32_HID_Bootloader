@@ -80,12 +80,12 @@
     new_termios.c_cc[VEOL2]    = 0;
 
 
-    if (cfsetispeed(&new_termios, B9600) != 0) {
-        fprintf(stderr, "cfsetispeed(&new_termios, B9600) failed: %s\n", strerror(errno));
+    if (cfsetispeed(&new_termios, B1200) != 0) {
+        fprintf(stderr, "cfsetispeed(&new_termios, B1200) failed: %s\n", strerror(errno));
         return 1;
     }
-    if (cfsetospeed(&new_termios, B9600) != 0) {
-        fprintf(stderr, "cfsetospeed(&new_termios, B9600) failed: %s\n", strerror(errno));
+    if (cfsetospeed(&new_termios, B1200) != 0) {
+        fprintf(stderr, "cfsetospeed(&new_termios, B1200) failed: %s\n", strerror(errno));
         return 1;
     }
 
