@@ -199,8 +199,7 @@ void Reset_Handler(void)
 	 *    registers from the Arduino IDE
 	 * then enter HID bootloader...
 	 */
-	if ((magic_word == 0x424C) ||
-		READ_BIT(GPIOB->IDR, GPIO_IDR_IDR2) ||
+	if ((magic_word == 0x424C) || CHECK_BOOT ||
 		(check_user_code(USER_PROGRAM) == false)) {
 		if (magic_word == 0x424C) {
 

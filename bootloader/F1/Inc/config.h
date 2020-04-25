@@ -143,17 +143,55 @@
 	#define DISC_HIGH		WRITE_REG(GPIOC->BSRR, GPIO_BSRR_BS13)
 	#define DISC_LOW		WRITE_REG(GPIOC->BRR, GPIO_BRR_BR13)
 
-	// Enable the internal pull-down on PB2 pin. By default, PB2
-	// is in FLOATING input mode.
+	// Use PA2 on SKR Mini E3 as the Button to check
+
+	#define BOOT_CLOCK RCC_APB2ENR_IOPAEN
+	#define CHECK_BOOT (READ_BIT(GPIOA->IDR, GPIO_IDR_IDR2) == 0)
+	#define BOOT_BIT_0  CLEAR_BIT(GPIOA->CRL, GPIO_CRL_CNF2_0)
+	#define BOOT_BIT_1  SET_BIT(GPIOA->CRL, GPIO_CRL_CNF2_1)
+	#define BOOT_SETUP  SET_BIT(GPIOA->ODR, GPIO_ODR_ODR2)
+
+	#ifdef PAGE_SIZE
+	#undef PAGE_SIZE
+	#define PAGE_SIZE 2048
+	#endif
+#elif defined TARGET_BTT_SKR_MINI_E3_NO_BTN
+
+	#define DISC_CLOCK		RCC_APB2ENR_IOPCEN
+	#define DISC_BIT_0		SET_BIT(GPIOC->CRH, GPIO_CRH_CNF13_0 | GPIO_CRH_MODE13)
+	#define DISC_BIT_1		//CLEAR_BIT(GPIOC->CRH, GPIO_CRH_CNF13_1)
+	#define DISC_MODE
+	#define DISC_HIGH		WRITE_REG(GPIOC->BSRR, GPIO_BSRR_BS13)
+	#define DISC_LOW		WRITE_REG(GPIOC->BRR, GPIO_BRR_BR13)
+
 	#define PB2_PULLDOWN
 
 	#ifdef PAGE_SIZE
 	#undef PAGE_SIZE
 	#define PAGE_SIZE 2048
 	#endif
-
 #else
 	#error "No config for this target"
+#endif
+
+#ifndef BOOT_CLOCK
+#define BOOT_CLOCK RCC_APB2ENR_IOPBEN
+#endif
+
+#ifndef CHECK_BOOT
+#define CHECK_BOOT READ_BIT(GPIOB->IDR, GPIO_IDR_IDR2)
+#endif
+
+#ifndef BOOT_BIT_0
+#define BOOT_BIT_0
+#endif
+
+#ifndef BOOT_BIT_1
+#define BOOT_BIT_1
+#endif
+
+#ifndef BOOT_SETUP
+#define BOOT_SETUP
 #endif
 
 #ifndef LED1_CLOCK
