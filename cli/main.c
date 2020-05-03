@@ -104,8 +104,8 @@ int main(int argc, char *argv[]) {
     return error;
   }
 
-  if (argc > 2) {
-    if(serial_init(argv[2], _timer) == 0){ //Setting up Serial port
+  if (argc > 3) {
+    if(serial_init(argv[3], _timer) == 0){ //Setting up Serial port
       RS232_CloseComport();
     }else{
       printf("> Unable to open the [%s]\n",argv[2]);
@@ -236,7 +236,7 @@ exit:
     printf("> Searching for [%s] ...\n",argv[3]);
 
     for(int i=0;i<5;i++){
-      if(RS232_OpenComport(argv[2]) == 0){
+      if(RS232_OpenComport(argv[3]) == 0){
         printf("> [%s] is found !\n",argv[3] );
         break;
       }
