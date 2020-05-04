@@ -43,6 +43,8 @@
 #define PID           0xBEBA
 #define FIRMWARE_VER  0x0300
 
+#define MAX_PAGE_SIZE 2048
+
 int serial_init(char *argument, uint8_t __timer);
 
 
@@ -79,7 +81,6 @@ int main(int argc, char *argv[]) {
   int i;
   setbuf(stdout, NULL);
   uint8_t _timer = 0;
-  uint16_t page_size = 1024;
 
   printf("\n+-----------------------------------------------------------------------+\n");
   printf  ("|         HID-Flash v2.2.1 - STM32 HID Bootloader Flash Tool            |\n");
@@ -89,14 +90,12 @@ int main(int argc, char *argv[]) {
   printf  ("+-----------------------------------------------------------------------+\n\n");
 
   // TODO:  This really needs an option parser
-  if(argc < 3) {
-    printf("Usage: hid-flash <bin_firmware_file> <page_size> <comport (optional)> <delay (optional)>\n");
+  if(argc < 2) {
+    printf("Usage: hid-flash <bin_firmware_file> <comport (optional)> <delay (optional)>\n");
     return 1;
-  }else if(argc == 5){
-    _timer = atol(argv[4]);
+  }else if(argc == 4){
+    _timer = atol(argv[3]);
   }
-
-  page_size = atol(argv[2]);
 
   firmware_file = fopen(argv[1], "rb");
   if(!firmware_file) {
@@ -104,8 +103,8 @@ int main(int argc, char *argv[]) {
     return error;
   }
 
-  if (argc > 3) {
-    if(serial_init(argv[3], _timer) == 0){ //Setting up Serial port
+  if (argc > 2) {
+    if(serial_init(argv[2], _timer) == 0){ //Setting up Serial port
       RS232_CloseComport();
     }else{
       printf("> Unable to open the [%s]\n",argv[2]);
@@ -123,7 +122,7 @@ int main(int argc, char *argv[]) {
     devs = hid_enumerate(VID, PID);
     cur_dev = devs;
     while (cur_dev) { //Search for valid HID Bootloader USB devices
-      if((cur_dev->vendor_id == VID)&&(cur_dev->product_id = PID)){
+      if((cur_dev->vendor_id == VID)&&(cur_dev->product_id == PID)){
         valid_hid_devices++;
         if(cur_dev->release_number < FIRMWARE_VER){ //The STM32 board has firmware lower than 3.00
           printf("\nError - Please update the firmware to the latest version (v3.00+)");
@@ -197,15 +196,21 @@ int main(int argc, char *argv[]) {
     do{
       hid_read(handle, hid_rx_buf, 9);
       usleep(500);
-    }while(hid_rx_buf[7] != 0x02);
+    // Exit the loop if we recieve 0x02 or 0x03
+    }while((hid_rx_buf[7] & 0xFE) != 0x02);
 
     memset(page_data, 0, sizeof(page_data));
     read_bytes = fread(page_data, 1, sizeof(page_data), firmware_file);
 
-    // For stm32f1 devices with 2k pages we need to send the full 2k before
-    // exiting the loop, otherwise the last page will not be written
-    if (read_bytes == 0 && (n_bytes % page_size) == 0)
-      break;
+    // For stm32f1 high density devices (2K page size) will receive a
+    // 0x03 command acknowledgement above.  In that case, we must
+    // make sure that we send a full 2K so the last page is written.
+    // Note that this issue does not affect STM32F4 devices with larger
+    // page sizes.
+    if (read_bytes == 0) {
+      if (hid_rx_buf[7] != 0x03 || (n_bytes % MAX_PAGE_SIZE) == 0)
+        break;
+    }
   }
 
   printf("\n> Done!\n");
@@ -232,12 +237,12 @@ exit:
     fclose(firmware_file);
   }
 
-  if (argc > 3) {
-    printf("> Searching for [%s] ...\n",argv[3]);
+  if (argc > 2) {
+    printf("> Searching for [%s] ...\n",argv[2]);
 
     for(int i=0;i<5;i++){
-      if(RS232_OpenComport(argv[3]) == 0){
-        printf("> [%s] is found !\n",argv[3] );
+      if(RS232_OpenComport(argv[2]) == 0){
+        printf("> [%s] is found !\n",argv[2] );
         break;
       }
       sleep(1);
