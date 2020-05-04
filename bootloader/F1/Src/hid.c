@@ -75,7 +75,11 @@ volatile bool UploadStarted;
 volatile bool UploadFinished;
 
 /* Sent command (Received command is the same minus last byte) */
+#if PAGE_SIZE == 1024
 static const uint8_t Command[] = {'B', 'T', 'L', 'D', 'C', 'M', 'D', 2};
+#else
+static const uint8_t Command[] = {'B', 'T', 'L', 'D', 'C', 'M', 'D', 3};
+#endif
 
 /* Flash page buffer */
 static uint8_t PageData[PAGE_SIZE];
@@ -286,7 +290,7 @@ static void HIDUSB_HandleData(uint8_t *data)
 		CurrentPageOffset = 0;
 		LED1_OFF;
 	}
-  
+
   if((CurrentPageOffset == 0)||(CurrentPageOffset == 1024)){
     USB_SendData(ENDP1, (uint16_t *) Command,
 			sizeof (Command));

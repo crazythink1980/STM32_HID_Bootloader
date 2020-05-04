@@ -217,6 +217,8 @@ void Reset_Handler(void)
 			delay(400L);
 		};
 
+		delay(200000L);
+
 		/* Reset the USB */
 		USB_Shutdown();
 
