@@ -248,7 +248,11 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+#ifdef CLOCK_DIV
+  RCC_OscInitStruct.PLL.PLLM = CLOCK_DIV;
+#else
   RCC_OscInitStruct.PLL.PLLM = 4;
+#endif
   RCC_OscInitStruct.PLL.PLLN = 72;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 3;
@@ -318,12 +322,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(BOOT_1_PORT, &GPIO_InitStruct);
 
+#ifdef LED_1_PIN
   /* Configure GPIO pin : PE0 */
   GPIO_InitStruct.Pin = LED_1_PIN;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LED_1_PORT, &GPIO_InitStruct);
+#endif
 }
 
 /* USER CODE BEGIN 4 */
@@ -331,7 +337,9 @@ void write_flash_sector(uint32_t currentPage) {
   uint32_t pageAddress = FLASH_BASE + (currentPage * SECTOR_SIZE);
   uint32_t SectorError;
 
-  HAL_GPIO_WritePin(LED_1_PORT, LED_1_PIN, GPIO_PIN_SET);	
+#ifdef LED_1_PIN
+  HAL_GPIO_WritePin(LED_1_PORT, LED_1_PIN, GPIO_PIN_SET);
+#endif
   FLASH_EraseInitTypeDef EraseInit;
   HAL_FLASH_Unlock();
   
@@ -370,7 +378,9 @@ void write_flash_sector(uint32_t currentPage) {
     dat += pageData[i];
     HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, pageAddress + i, dat);
   }
-  HAL_GPIO_WritePin(LED_1_PORT, LED_1_PIN,GPIO_PIN_RESET);  
+#ifdef LED_1_PIN
+  HAL_GPIO_WritePin(LED_1_PORT, LED_1_PIN,GPIO_PIN_RESET);
+#endif
   HAL_FLASH_Lock();
 }
 /* USER CODE END 4 */

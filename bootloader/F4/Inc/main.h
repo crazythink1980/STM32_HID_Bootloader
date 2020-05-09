@@ -101,11 +101,18 @@
 //#define LED_1_PIN       GPIO_PIN_0
 //#define LED_1_PORT      GPIOE
 
-#define BOOT_1_PIN      GPIO_PIN_2 //SKR-PRO STM32F407ZGT6 board (Button PB2, LED PE0)
+//#define BOOT_1_PIN      GPIO_PIN_2 //SKR-PRO STM32F407ZGT6 board (Button PB2, LED PE0)
+//#define BOOT_1_PORT     GPIOB
+//#define BOOT_1_ENABLED  GPIO_PIN_SET
+//#define LED_1_PIN       GPIO_PIN_7
+//#define LED_1_PORT      GPIOA
+
+#define BOOT_1_PIN      GPIO_PIN_2 //Extruder Board, STM32F405RGT6 board (Button PB2, No LED)
 #define BOOT_1_PORT     GPIOB
 #define BOOT_1_ENABLED  GPIO_PIN_SET
-#define LED_1_PIN       GPIO_PIN_7
-#define LED_1_PORT      GPIOA
+#define CLOCK_DIV       8        // 16 MHz clock
+//#define LED_1_PIN       GPIO_PIN_7
+//#define LED_1_PORT      GPIOA
 
 // #define BOOT_1_PIN      GPIO_PIN_2 //Black VET6 (http://wiki.stm32duino.com/index.php?title=STM32F407)
 // #define BOOT_1_PORT     GPIOB
