@@ -201,17 +201,15 @@ void Reset_Handler(void)
 	 */
 	if ((magic_word == 0x424C) || CHECK_BOOT ||
 		(check_user_code(USER_PROGRAM) == false)) {
-		if (magic_word == 0x424C) {
 
-			/* If a magic word was stored in the
-			 * battery-backed RAM registers from the
-			 * Arduino IDE, exit from USB Serial mode and
-			 * go to HID mode...
-			 */
-			LED2_ON;
-			USB_Shutdown();
-			delay(4000000L);
-		}
+		// It shouldn't be necessary to check for the
+		// magic word to execute the below code block.
+		// In fact the USB reset is necessary on blue
+		// pill devices.
+		LED2_ON;
+		USB_Shutdown();
+		delay(4000000L);
+
 		USB_Init();
 		while (check_flash_complete() == false) {
 			delay(400L);
