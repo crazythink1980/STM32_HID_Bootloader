@@ -85,6 +85,8 @@ generic-pb12: $(SRCS) clean gccversion build_generic-pb12 copy_generic-pb12 info
 mini-stm32v3: $(SRCS) clean gccversion build_mini-stm32v3 copy_mini-stm32v3 info size
 btt-skr-mini-e3: $(SRCS) clean gccversion build_btt-skr-mini-e3 copy_btt-skr-mini-e3 info size
 btt-skr-mini-e3_no-btn: $(SRCS) clean gccversion build_btt-skr-mini-e3_no-btn copy_btt-skr-mini-e3_no-btn info size
+btt-skr-mini-e3-2point0: $(SRCS) clean gccversion build_btt-skr-mini-e3-2point0 copy_btt-skr-mini-e3-2point0 info size
+btt-skr-mini-e3-2point0_no-btn: $(SRCS) clean gccversion build_btt-skr-mini-e3-2point0_no-btn copy_btt-skr-mini-e3-2point0_no-btn info size
 
 build_maple-mini: TARGETFLAGS= -DTARGET_MAPLE_MINI
 build_maple-mini: LINKER_SCRIPT=STM32F103C8T6.ld
@@ -177,19 +179,33 @@ copy_mini-stm32v3: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_mini-stm32v3.bin"
 	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_mini-stm32v3.bin
 
-build_btt-skr-mini-e3 : TARGETFLAGS= -DTARGET_BTT_SKR_MINI_E3
+build_btt-skr-mini-e3 : TARGETFLAGS= -DTARGET_BTT_SKR_MINI_E3 -DENABLE_BUTTON
 build_btt-skr-mini-e3 : LINKER_SCRIPT=STM32F103C8T6.ld
 build_btt-skr-mini-e3 : $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_btt-skr-mini-e3: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_btt_skr_mini_e3.bin"
 	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_btt_skr_mini_e3.bin
 
-build_btt-skr-mini-e3_no-btn : TARGETFLAGS= -DTARGET_BTT_SKR_MINI_E3_NO_BTN
+build_btt-skr-mini-e3_no-btn : TARGETFLAGS= -DTARGET_BTT_SKR_MINI_E3
 build_btt-skr-mini-e3_no-btn : LINKER_SCRIPT=STM32F103C8T6.ld
 build_btt-skr-mini-e3_no-btn : $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_btt-skr-mini-e3_no-btn: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_btt_skr_mini_e3_no_btn.bin"
 	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_btt_skr_mini_e3_no_btn.bin
+
+build_btt-skr-mini-e3-2point0 : TARGETFLAGS= -DTARGET_BTT_SKR_MINI_E3_2POINT0 -DENABLE_BUTTON
+build_btt-skr-mini-e3-2point0 : LINKER_SCRIPT=STM32F103C8T6.ld
+build_btt-skr-mini-e3-2point0 : $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
+copy_btt-skr-mini-e3-2point0: $(BIN_DIR)
+	$(ECHO) "COPY    $(BIN_DIR)/hid_btt_skr_mini_e3_2point0.bin"
+	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_btt_skr_mini_e3_2point0.bin
+
+build_btt-skr-mini-e3-2point0_no-btn : TARGETFLAGS= -DTARGET_BTT_SKR_MINI_E3_2POINT0
+build_btt-skr-mini-e3-2point0_no-btn : LINKER_SCRIPT=STM32F103C8T6.ld
+build_btt-skr-mini-e3-2point0_no-btn : $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
+copy_btt-skr-mini-e3-2point0_no-btn: $(BIN_DIR)
+	$(ECHO) "COPY    $(BIN_DIR)/hid_btt_skr_mini_e3_2point0_no_btn.bin"
+	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_btt_skr_mini_e3_2point0_no_btn.bin
 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJS)
 	$(ECHO) "LD      $@"
