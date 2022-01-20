@@ -32,17 +32,8 @@
 #include "hid.h"
 #include "led.h"
 
-/* Bootloader size */
-#define BOOTLOADER_SIZE			(2 * 1024)
-
-/* SRAM size */
-#define SRAM_SIZE			(20 * 1024)
-
 /* SRAM end (bottom of stack) */
 #define SRAM_END			(SRAM_BASE + SRAM_SIZE)
-
-/* HID Bootloader takes 2 kb flash. */
-#define USER_PROGRAM			(FLASH_BASE + BOOTLOADER_SIZE)
 
 /* Initial stack pointer index in vector table*/
 #define INITIAL_MSP			0

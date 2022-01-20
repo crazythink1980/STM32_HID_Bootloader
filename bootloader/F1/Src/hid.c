@@ -33,23 +33,6 @@
 /* This should be <= MAX_EP_NUM defined in usb.h */
 #define EP_NUM 			2
 
-/* Flash memory base address */
-#define FLASH_BASE_ADDRESS	0x08000000
-
-/* *
- * PAGE_SIZE : Flash Page size
- *  Low and MEDIUM Density F103 devices have 1 kB Flash page
- *  High Density F103 devices have 2 kB Flash page
- *
- * PAGEMIN : This should be the last page taken by the bootloader
- *  (2 * 1024) or (1 * 2048) In any case, the bootloader size is 2048 bytes
- */
-#if (PAGE_SIZE == 2048)
-#define MIN_PAGE		1
-#else
-#define MIN_PAGE		2
-#endif
-
 /* Maximum packet size */
 #define MAX_PACKET_SIZE		8
 
@@ -266,7 +249,7 @@ static void HIDUSB_HandleData(uint8_t *data)
 
 			/* Reset Page Command */
 			UploadStarted = true;
-			CurrentPage = MIN_PAGE;
+			CurrentPage = 0;
 			CurrentPageOffset = 0;
 		break;
 
@@ -281,7 +264,7 @@ static void HIDUSB_HandleData(uint8_t *data)
 		}
 	} else if (CurrentPageOffset >= PAGE_SIZE) {
 		LED1_ON;
-		page_address = (uint16_t * ) (FLASH_BASE_ADDRESS +
+		page_address = (uint16_t * ) (USER_PROGRAM +
 			(CurrentPage * PAGE_SIZE));
 		FLASH_WritePage(page_address, (uint16_t *) PageData,
 			PAGE_SIZE / 2);
@@ -300,7 +283,7 @@ void USB_Reset(void)
 {
 
 	/* Initialize Flash Page Settings */
-	CurrentPage = MIN_PAGE;
+	CurrentPage = 0;
 	CurrentPageOffset = 0;
 
 	/* Set buffer descriptor table offset in PMA memory */

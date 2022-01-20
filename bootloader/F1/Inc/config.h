@@ -137,6 +137,28 @@
 	#define DISC_HIGH		WRITE_REG(GPIOD->BSRR, GPIO_BSRR_BS2)
 	#define DISC_LOW		WRITE_REG(GPIOD->BRR, GPIO_BRR_BR2)
 
+#elif defined TARGET_BLUEPILL
+	#define LED1_CLOCK		RCC_APB2ENR_IOPCEN
+	#define LED1_BIT_0		SET_BIT(GPIOC->CRH, GPIO_CRH_CNF13_0 | GPIO_CRH_MODE13)
+	#define LED1_BIT_1		//CLEAR_BIT(GPIOC->CRH, GPIO_CRH_CNF13_1)
+	#define LED1_MODE
+	#define LED1_OFF		WRITE_REG(GPIOC->BSRR, GPIO_BSRR_BS13)
+	#define LED1_ON			WRITE_REG(GPIOC->BRR, GPIO_BRR_BR13)
+
+	//Second LED feature is not currently used.
+	#define LED2_CLOCK		0 //RCC_APB2ENR_IOPBEN
+	#define LED2_BIT_0		//CLEAR_BIT(GPIOB->CRL, GPIO_CRL_CNF1_0)
+	#define LED2_BIT_1		//CLEAR_BIT(GPIOB->CRL, GPIO_CRL_CNF1_1)
+	#define LED2_MODE		//SET_BIT(G1PIOB->CRL, GPIO_CRL_MODE1)
+	#define LED2_ON			//WRITE_REG(GPIOB->BSRR, GPIO_BSRR_BS1)
+	#define LED2_OFF		//WRITE_REG(GPIOB->BRR, GPIO_BRR_BR1)
+
+	//#define PB2_PULLDOWN
+
+	#ifdef SRAM_SIZE
+	#undef SRAM_SIZE
+	#define SRAM_SIZE 10240
+	#endif
 #elif defined TARGET_BTT_SKR_MINI_E3
 	#define LED1_CLOCK		RCC_APB2ENR_IOPAEN
 	#define LED1_BIT_0
@@ -290,5 +312,11 @@
 #ifndef DISC_HIGH
 #define DISC_HIGH
 #endif
+
+/* Bootloader size */
+#define BOOTLOADER_SIZE			(2 * 1024)
+
+/* HID Bootloader takes 2 kb flash. */
+#define USER_PROGRAM			(FLASH_BASE + BOOTLOADER_SIZE)
 
 #endif

@@ -11,3 +11,8 @@ make generic-pb7
 make generic-pb0
 make generic-pb12
 make mini-stm32v3
+make bluepill
+make btt-skr-mini-e3
+make btt-skr-mini-e3_no-btn
+make btt-skr-mini-e3-2point0
+make btt-skr-mini-e3-2point0_no-btn

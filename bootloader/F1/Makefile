@@ -6,7 +6,9 @@ VECTOR_TABLE_OFFSET = 0x0000
 
 # The default Flash Page size (Sector size) for LOW and MEDIUM STM32F103 devices is 1024 bytes
 # High Density STM32F103 devices have 2 kB Flash Page size  
-PAGE_SIZE = 1024
+PAGE_SIZE ?= 1024
+
+SRAM_SIZE ?= 20480
 
 C_SRCS = Src/main.c Src/usb.c Src/hid.c Src/led.c Src/flash.c
 
@@ -38,13 +40,14 @@ CFLAGS += -DVECTOR_TABLE_OFFSET=$(VECTOR_TABLE_OFFSET)
 CFLAGS += -nostdlib
 CFLAGS += $(TARGETFLAGS)
 CFLAGS += -DPAGE_SIZE=$(PAGE_SIZE)
+CFLAGS += -DSRAM_SIZE=$(SRAM_SIZE)
 
 LDFLAGS += -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref
 LDFLAGS += -Wl,--gc-sections
 LDFLAGS += -Wl,--print-memory-usage
 LDFLAGS += -Wl,--no-wchar-size-warning
 LDFLAGS += -nostdlib
-LDFLAGS += -T$(LINKER_SCRIPT)
+LDFLAGS += -T$(CHIP).ld
 
 # Tool paths.
 PREFIX	?= arm-none-eabi-
@@ -83,125 +86,134 @@ generic-pb7: $(SRCS) clean gccversion build_generic-pb7 copy_generic-pb7 info si
 generic-pb0: $(SRCS) clean gccversion build_generic-pb0 copy_generic-pb0 info size
 generic-pb12: $(SRCS) clean gccversion build_generic-pb12 copy_generic-pb12 info size
 mini-stm32v3: $(SRCS) clean gccversion build_mini-stm32v3 copy_mini-stm32v3 info size
+bluepill: $(SRCS) clean gccversion build_bluepill copy_bluepill info size
 btt-skr-mini-e3: $(SRCS) clean gccversion build_btt-skr-mini-e3 copy_btt-skr-mini-e3 info size
 btt-skr-mini-e3_no-btn: $(SRCS) clean gccversion build_btt-skr-mini-e3_no-btn copy_btt-skr-mini-e3_no-btn info size
 btt-skr-mini-e3-2point0: $(SRCS) clean gccversion build_btt-skr-mini-e3-2point0 copy_btt-skr-mini-e3-2point0 info size
 btt-skr-mini-e3-2point0_no-btn: $(SRCS) clean gccversion build_btt-skr-mini-e3-2point0_no-btn copy_btt-skr-mini-e3-2point0_no-btn info size
 
 build_maple-mini: TARGETFLAGS= -DTARGET_MAPLE_MINI
-build_maple-mini: LINKER_SCRIPT=STM32F103C8T6.ld
+build_maple-mini: CHIP?=STM32F103C8T6
 build_maple-mini: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_maple_mini: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_maple_mini.bin"
 	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_maple_mini.bin
 
 build_generic-pc13: TARGETFLAGS= -DTARGET_GENERIC_F103_PC13
-build_generic-pc13: LINKER_SCRIPT=STM32F103C8T6.ld
+build_generic-pc13: CHIP?=STM32F103C8T6
 build_generic-pc13: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pc13: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pc13.bin"
 	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pc13.bin
 
 build_generic-pd2: TARGETFLAGS= -DTARGET_GENERIC_F103_PD2
-build_generic-pd2: LINKER_SCRIPT=STM32F103C8T6.ld
+build_generic-pd2: CHIP?=STM32F103C8T6
 build_generic-pd2: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pd2: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pd2.bin"
 	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pd2.bin
 
 build_generic-pd1: TARGETFLAGS= -DTARGET_GENERIC_F103_PD1
-build_generic-pd1: LINKER_SCRIPT=STM32F103C8T6.ld
+build_generic-pd1: CHIP?=STM32F103C8T6
 build_generic-pd1: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pd1: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pd1.bin"
 	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pd1.bin
 
 build_generic-pa1: TARGETFLAGS= -DTARGET_GENERIC_F103_PA1
-build_generic-pa1: LINKER_SCRIPT=STM32F103C8T6.ld
+build_generic-pa1: CHIP?=STM32F103C8T6
 build_generic-pa1: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pa1: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pa1.bin"
 	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pa1.bin
 
 build_generic-pb9: TARGETFLAGS= -DTARGET_GENERIC_F103_PB9
-build_generic-pb9: LINKER_SCRIPT=STM32F103C8T6.ld
+build_generic-pb9: CHIP?=STM32F103C8T6
 build_generic-pb9: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pb9: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pb9.bin"
 	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pb9.bin
 
 build_generic-pe2: TARGETFLAGS= -DTARGET_GENERIC_F103_PE2
-build_generic-pe2: LINKER_SCRIPT=STM32F103C8T6.ld
+build_generic-pe2: CHIP?=STM32F103C8T6
 build_generic-pe2: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pe2: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pe2.bin"
 	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pe2.bin
 
 build_generic-pa9: TARGETFLAGS= -DTARGET_GENERIC_F103_PA9
-build_generic-pa9: LINKER_SCRIPT=STM32F103C8T6.ld
+build_generic-pa9: CHIP?=STM32F103C8T6
 build_generic-pa9: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pa9: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pa9.bin"
 	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pa9.bin
 
 build_generic-pe5: TARGETFLAGS= -DTARGET_GENERIC_F103_PE5
-build_generic-pe5: LINKER_SCRIPT=STM32F103C8T6.ld
+build_generic-pe5: CHIP?=STM32F103C8T6
 build_generic-pe5: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pe5: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pe5.bin"
 	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pe5.bin
 
 build_generic-pb7: TARGETFLAGS= -DTARGET_GENERIC_F103_PB7
-build_generic-pb7: LINKER_SCRIPT=STM32F103C8T6.ld
+build_generic-pb7: CHIP?=STM32F103C8T6
 build_generic-pb7: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pb7: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pb7.bin"
 	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pb7.bin
 
 build_generic-pb0: TARGETFLAGS= -DTARGET_GENERIC_F103_PB0
-build_generic-pb0: LINKER_SCRIPT=STM32F103C8T6.ld
+build_generic-pb0: CHIP?=STM32F103C8T6
 build_generic-pb0: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pb0: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pb0.bin"
 	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pb0.bin
 
 build_generic-pb12: TARGETFLAGS= -DTARGET_GENERIC_F103_PB12
-build_generic-pb12: LINKER_SCRIPT=STM32F103C8T6.ld
+build_generic-pb12: CHIP?=STM32F103C8T6
 build_generic-pb12: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_generic-pb12: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_generic_pb12.bin"
 	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_generic_pb12.bin
 
 build_mini-stm32v3: TARGETFLAGS= -DTARGET_MINI_STM32V3
-build_mini-stm32v3: LINKER_SCRIPT=STM32F103CBT6.ld
+build_mini-stm32v3: CHIP?=STM32F103CBT6
 build_mini-stm32v3: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_mini-stm32v3: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_mini-stm32v3.bin"
 	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_mini-stm32v3.bin
 
+build_bluepill: TARGETFLAGS= -DTARGET_BLUEPILL
+build_bluepill: CHIP?=STM32F103C6T6
+build_bluepill: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
+copy_bluepill: $(BIN_DIR)
+	$(ECHO) $(SRAM_SIZE)
+	$(ECHO) "COPY    $(BIN_DIR)/hid_bluepill.bin"
+	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_bluepill.bin
+
 build_btt-skr-mini-e3 : TARGETFLAGS= -DTARGET_BTT_SKR_MINI_E3 -DENABLE_BUTTON
-build_btt-skr-mini-e3 : LINKER_SCRIPT=STM32F103C8T6.ld
+build_btt-skr-mini-e3 : CHIP?=STM32F103C8T6
 build_btt-skr-mini-e3 : $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_btt-skr-mini-e3: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_btt_skr_mini_e3.bin"
 	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_btt_skr_mini_e3.bin
 
 build_btt-skr-mini-e3_no-btn : TARGETFLAGS= -DTARGET_BTT_SKR_MINI_E3
-build_btt-skr-mini-e3_no-btn : LINKER_SCRIPT=STM32F103C8T6.ld
+build_btt-skr-mini-e3_no-btn : CHIP?=STM32F103C8T6
 build_btt-skr-mini-e3_no-btn : $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_btt-skr-mini-e3_no-btn: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_btt_skr_mini_e3_no_btn.bin"
 	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_btt_skr_mini_e3_no_btn.bin
 
 build_btt-skr-mini-e3-2point0 : TARGETFLAGS= -DTARGET_BTT_SKR_MINI_E3_2POINT0 -DENABLE_BUTTON
-build_btt-skr-mini-e3-2point0 : LINKER_SCRIPT=STM32F103C8T6.ld
+build_btt-skr-mini-e3-2point0 : CHIP?=STM32F103C8T6
 build_btt-skr-mini-e3-2point0 : $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_btt-skr-mini-e3-2point0: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_btt_skr_mini_e3_2point0.bin"
 	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_btt_skr_mini_e3_2point0.bin
 
 build_btt-skr-mini-e3-2point0_no-btn : TARGETFLAGS= -DTARGET_BTT_SKR_MINI_E3_2POINT0
-build_btt-skr-mini-e3-2point0_no-btn : LINKER_SCRIPT=STM32F103C8T6.ld
+build_btt-skr-mini-e3-2point0_no-btn : CHIP?=STM32F103C8T6
 build_btt-skr-mini-e3-2point0_no-btn : $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 copy_btt-skr-mini-e3-2point0_no-btn: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_btt_skr_mini_e3_2point0_no_btn.bin"
@@ -241,6 +253,10 @@ size: $(BUILD_DIR)/$(TARGET).elf
 	$(Q)$(SIZE) $(BUILD_DIR)/$(TARGET).elf
 
 $(BUILD_DIR):
+	$(ECHO) "MKDIR   $@"
+	$(Q)$(MKDIR) $@
+
+$(BIN_DIR):
 	$(ECHO) "MKDIR   $@"
 	$(Q)$(MKDIR) $@
 
