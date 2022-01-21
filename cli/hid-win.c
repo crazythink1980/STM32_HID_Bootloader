@@ -70,7 +70,7 @@ extern "C" {
 #define MIN(x,y) ((x) < (y)? (x): (y))
 
 #ifdef _MSC_VER
-  /* Thanks Microsoft, but I know how to use strncpy(). */
+  /* Thanks Microsoft, but I know how to use strcpy(). */
   #pragma warning(disable:4996)
 #endif
 
@@ -428,7 +428,7 @@ struct hid_device_info HID_API_EXPORT * HID_API_CALL hid_enumerate(unsigned shor
       if (str) {
         len = strlen(str);
         cur_dev->path = (char*) calloc(len+1, sizeof(char));
-        strncpy(cur_dev->path, str, len+1);
+        strcpy(cur_dev->path, str);
         cur_dev->path[len] = '\0';
       }
       else

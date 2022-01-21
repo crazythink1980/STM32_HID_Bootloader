@@ -1,6 +1,6 @@
 CC=gcc
-CFLAGS=-c -Wall
-LDFLAGS=
+CFLAGS=-c -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-cast-function-type -O3 -s -flto -ffunction-sections -fdata-sections -DNDEBUG
+LDFLAGS=-O3 -s -flto -Wl,--gc-sections
 SOURCES=main.c
 INCLUDE_DIRS=-I .
 CHECK=1
