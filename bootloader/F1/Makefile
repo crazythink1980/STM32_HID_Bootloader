@@ -91,6 +91,7 @@ btt-skr-mini-e3: $(SRCS) clean gccversion build_btt-skr-mini-e3 copy_btt-skr-min
 btt-skr-mini-e3_no-btn: $(SRCS) clean gccversion build_btt-skr-mini-e3_no-btn copy_btt-skr-mini-e3_no-btn info size
 btt-skr-mini-e3-2point0: $(SRCS) clean gccversion build_btt-skr-mini-e3-2point0 copy_btt-skr-mini-e3-2point0 info size
 btt-skr-mini-e3-2point0_no-btn: $(SRCS) clean gccversion build_btt-skr-mini-e3-2point0_no-btn copy_btt-skr-mini-e3-2point0_no-btn info size
+apk-c6t6: $(SRCS) clean gccversion build_apk-c6t6 copy_apk-c6t6 info size
 
 build_maple-mini: TARGETFLAGS= -DTARGET_MAPLE_MINI
 build_maple-mini: CHIP?=STM32F103C8T6
@@ -218,6 +219,14 @@ build_btt-skr-mini-e3-2point0_no-btn : $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$
 copy_btt-skr-mini-e3-2point0_no-btn: $(BIN_DIR)
 	$(ECHO) "COPY    $(BIN_DIR)/hid_btt_skr_mini_e3_2point0_no_btn.bin"
 	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_btt_skr_mini_e3_2point0_no_btn.bin
+
+build_apk-c6t6: TARGETFLAGS= -DTARGET_APK_C6T6
+build_apk-c6t6: CHIP?=STM32F103C6T6
+build_apk-c6t6: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
+copy_apk-c6t6: $(BIN_DIR)
+	$(ECHO) $(SRAM_SIZE)
+	$(ECHO) "COPY    $(BIN_DIR)/hid_apk_c6t6.bin"
+	$(Q)$(CP) $(BUILD_DIR)/$(TARGET).bin $(BIN_DIR)/hid_apk_c6t6.bin
 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJS)
 	$(ECHO) "LD      $@"
