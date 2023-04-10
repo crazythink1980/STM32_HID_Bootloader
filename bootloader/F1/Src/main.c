@@ -1,29 +1,29 @@
 /*
-* STM32 HID Bootloader - USB HID bootloader for STM32F10X
-* Copyright (c) 2018 Bruno Freitas - bruno@brunofreitas.com
-*
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*
-* Modified 20 April 2018
-*	by Vassilis Serasidis <info@serasidis.gr>
-*	This HID bootloader works with STM32F103 + STM32duino + Arduino IDE <http://www.stm32duino.com/>
-*
-* Modified January 2019
-*	by Michel Stempin <michel.stempin@wanadoo.fr>
-*	Cleanup and optimizations
-*
-*/
+ * STM32 HID Bootloader - USB HID bootloader for STM32F10X
+ * Copyright (c) 2018 Bruno Freitas - bruno@brunofreitas.com
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Modified 20 April 2018
+ *	by Vassilis Serasidis <info@serasidis.gr>
+ *	This HID bootloader works with STM32F103 + STM32duino + Arduino IDE <http://www.stm32duino.com/>
+ *
+ * Modified January 2019
+ *	by Michel Stempin <michel.stempin@wanadoo.fr>
+ *	Cleanup and optimizations
+ *
+ */
 
 #include <stm32f10x.h>
 #include <stdbool.h>
@@ -33,16 +33,16 @@
 #include "led.h"
 
 /* SRAM end (bottom of stack) */
-#define SRAM_END			(SRAM_BASE + SRAM_SIZE)
+#define SRAM_END (SRAM_BASE + SRAM_SIZE)
 
 /* Initial stack pointer index in vector table*/
-#define INITIAL_MSP			0
+#define INITIAL_MSP 0
 
 /* Reset handler index in vector table*/
-#define RESET_HANDLER			1
+#define RESET_HANDLER 1
 
 /* USB Low-Priority and CAN1 RX0 IRQ handler idnex in vector table */
-#define USB_LP_CAN1_RX0_IRQ_HANDLER	36
+#define USB_LP_CAN1_RX0_IRQ_HANDLER 36
 
 /* Simple function pointer type to call user program */
 typedef void (*funct_ptr)(void);
@@ -54,25 +54,27 @@ void Reset_Handler(void);
 uint32_t *VectorTable[] __attribute__((section(".isr_vector"))) = {
 
 	/* Initial stack pointer (MSP) */
-	(uint32_t *) SRAM_END,
+	(uint32_t *)SRAM_END,
 
 	/* Initial program counter (PC): Reset handler */
-	(uint32_t *) Reset_Handler
-};
+	(uint32_t *)Reset_Handler};
 
 static void delay(uint32_t timeout)
 {
-	for (uint32_t i = 0; i < timeout; i++) {
+	for (uint32_t i = 0; i < timeout; i++)
+	{
 		__NOP();
 	}
 }
 
 static bool check_flash_complete(void)
 {
-	if (UploadFinished == true) {
+	if (UploadFinished == true)
+	{
 		return true;
 	}
-	if (UploadStarted == false) {
+	if (UploadStarted == false)
+	{
 		LED1_ON;
 		delay(200000L);
 		LED1_OFF;
@@ -83,7 +85,7 @@ static bool check_flash_complete(void)
 
 static bool check_user_code(uint32_t user_address)
 {
-	uint32_t sp = *(volatile uint32_t *) user_address;
+	uint32_t sp = *(volatile uint32_t *)user_address;
 
 	/* Check if the stack pointer in the vector table points
 	   somewhere in SRAM */
@@ -98,7 +100,8 @@ static uint16_t get_and_clear_magic_word(void)
 	 */
 	SET_BIT(RCC->APB1ENR, RCC_APB1ENR_BKPEN | RCC_APB1ENR_PWREN);
 	uint16_t value = READ_REG(BKP->DR4);
-	if (value) {
+	if (value)
+	{
 
 		/* Enable write access to the backup registers and the
 		 * RTC.
@@ -118,7 +121,8 @@ static void set_sysclock_to_72_mhz(void)
 	SET_BIT(RCC->CR, RCC_CR_HSEON);
 
 	/* Wait until HSE is ready */
-	while (READ_BIT(RCC->CR, RCC_CR_HSERDY) == 0) {
+	while (READ_BIT(RCC->CR, RCC_CR_HSERDY) == 0)
+	{
 		;
 	}
 
@@ -129,14 +133,15 @@ static void set_sysclock_to_72_mhz(void)
 	/* PCLK1 = HCLK / 2 */
 	/* PLLCLK = HSE * 9 = 72 MHz */
 	SET_BIT(RCC->CFGR,
-		RCC_CFGR_HPRE_DIV1 | RCC_CFGR_PPRE2_DIV1 | RCC_CFGR_PPRE1_DIV2 |
-		RCC_CFGR_PLLSRC_HSE | RCC_CFGR_PLLMULL9);
+			RCC_CFGR_HPRE_DIV1 | RCC_CFGR_PPRE2_DIV1 | RCC_CFGR_PPRE1_DIV2 |
+				RCC_CFGR_PLLSRC_HSE | RCC_CFGR_PLLMULL9);
 
 	/* Enable PLL */
 	SET_BIT(RCC->CR, RCC_CR_PLLON);
 
 	/* Wait until PLL is ready */
-	while (READ_BIT(RCC->CR, RCC_CR_PLLRDY) == 0) {
+	while (READ_BIT(RCC->CR, RCC_CR_PLLRDY) == 0)
+	{
 		;
 	}
 
@@ -144,7 +149,8 @@ static void set_sysclock_to_72_mhz(void)
 	SET_BIT(RCC->CFGR, RCC_CFGR_SW_PLL);
 
 	/* Wait until PLL is used as system clock source */
-	while (READ_BIT(RCC->CFGR, RCC_CFGR_SWS_1) == 0) {
+	while (READ_BIT(RCC->CFGR, RCC_CFGR_SWS_1) == 0)
+	{
 		;
 	}
 }
@@ -152,7 +158,7 @@ static void set_sysclock_to_72_mhz(void)
 void Reset_Handler(void)
 {
 	volatile uint32_t *const ram_vectors =
-		(volatile uint32_t *const) SRAM_BASE;
+		(volatile uint32_t *const)SRAM_BASE;
 
 	/* Setup the system clock (System clock source, PLL Multiplier
 	 * factors, AHB/APBx prescalers and Flash settings)
@@ -163,10 +169,10 @@ void Reset_Handler(void)
 	 * USB IRQs
 	 */
 	ram_vectors[INITIAL_MSP] = SRAM_END;
-	ram_vectors[RESET_HANDLER] = (uint32_t) Reset_Handler;
+	ram_vectors[RESET_HANDLER] = (uint32_t)Reset_Handler;
 	ram_vectors[USB_LP_CAN1_RX0_IRQ_HANDLER] =
-		(uint32_t) USB_LP_CAN1_RX0_IRQHandler;
-	WRITE_REG(SCB->VTOR, (volatile uint32_t) ram_vectors);
+		(uint32_t)USB_LP_CAN1_RX0_IRQHandler;
+	WRITE_REG(SCB->VTOR, (volatile uint32_t)ram_vectors);
 
 	/* Check for a magic word in BACKUP memory */
 	uint16_t magic_word = get_and_clear_magic_word();
@@ -181,7 +187,10 @@ void Reset_Handler(void)
 	UploadStarted = false;
 	UploadFinished = false;
 	funct_ptr UserProgram =
-		(funct_ptr) *(volatile uint32_t *) (USER_PROGRAM + 0x04);
+		(funct_ptr) * (volatile uint32_t *)(USER_PROGRAM + 0x04);
+
+	USB_Shutdown();
+	delay(4000000L);
 
 	/* If:
 	 *  - PB2 (BOOT 1 pin) is HIGH or
@@ -191,18 +200,18 @@ void Reset_Handler(void)
 	 * then enter HID bootloader...
 	 */
 	if ((magic_word == 0x424C) || CHECK_BOOT ||
-		(check_user_code(USER_PROGRAM) == false)) {
+		(check_user_code(USER_PROGRAM) == false))
+	{
 
 		// It shouldn't be necessary to check for the
 		// magic word to execute the below code block.
 		// In fact the USB reset is necessary on blue
 		// pill devices.
 		LED2_ON;
-		USB_Shutdown();
-		delay(4000000L);
 
 		USB_Init();
-		while (check_flash_complete() == false) {
+		while (check_flash_complete() == false)
+		{
 			delay(400L);
 		};
 
@@ -215,7 +224,8 @@ void Reset_Handler(void)
 		NVIC_SystemReset();
 
 		/* Never reached */
-		for (;;) {
+		for (;;)
+		{
 			;
 		}
 	}
@@ -223,7 +233,7 @@ void Reset_Handler(void)
 
 	/* Turn GPIO clocks off */
 	CLEAR_BIT(RCC->APB2ENR,
-		LED1_CLOCK | LED2_CLOCK | DISC_CLOCK | AFIO_CLOCK/* | RCC_APB2ENR_IOPBEN*/);
+			  LED1_CLOCK | LED2_CLOCK | DISC_CLOCK | AFIO_CLOCK /* | RCC_APB2ENR_IOPBEN*/);
 
 	/* Setup the vector table to the final user-defined one in Flash
 	 * memory
@@ -231,13 +241,14 @@ void Reset_Handler(void)
 	WRITE_REG(SCB->VTOR, USER_PROGRAM);
 
 	/* Setup the stack pointer to the user-defined one */
-	__set_MSP((*(volatile uint32_t *) USER_PROGRAM));
+	__set_MSP((*(volatile uint32_t *)USER_PROGRAM));
 
 	/* Jump to the user firmware entry point */
 	UserProgram();
 
 	/* Never reached */
-	for (;;) {
+	for (;;)
+	{
 		;
 	}
 }
